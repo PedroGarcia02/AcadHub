@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Cadastrar Conteúdo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    function toggleCampos() {
+      const tipo = document.getElementById("tipo").value;
+      const campoArquivo = document.getElementById("campoArquivo");
+      const campoLink = document.getElementById("campoLink");
+
+      if (tipo === "pdf" || tipo === "zip") {
+        campoArquivo.classList.remove("hidden");
+        campoLink.classList.add("hidden");
+        document.getElementById("arquivo").required = true;
+        document.getElementById("link").required = false;
+      } else if (tipo === "link") {
+        campoArquivo.classList.add("hidden");
+        campoLink.classList.remove("hidden");
+        document.getElementById("arquivo").required = false;
+        document.getElementById("link").required = true;
+      } else {
+        campoArquivo.classList.add("hidden");
+        campoLink.classList.add("hidden");
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+  <%- include('../includes/navbar') %>
+
+  <div class="flex items-center justify-center min-h-[calc(100vh-64px)]">
+    <div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
+      <h1 class="text-2xl font-bold text-center mb-4">Cadastrar Conteúdo</h1>
+
+      <form action="/repo/cadastrarConteudo?materia_id=<%= materia_id %>" method="POST" enctype="multipart/form-data"class="flex flex-col gap-3 mb-4">
+        <% if (error) { %>
+          <p class="text-red-500 text-center"><%= error %></p>
+        <% } %>
+
+        <input type="hidden" name="materia_id" value="<%= materia_id %>">
+
+        <input type="text" name="nome" placeholder="Nome do Conteúdo" value="<%= formData ? formData.nome : '' %>" required class="p-2 border rounded">
+
+        <textarea name="descricao" required class="p-2 border rounded" placeholder="Descrição"><%= formData ? formData.descricao : '' %></textarea>
+
+        <select id="tipo" name="tipo" required onchange="toggleCampos()" class="p-2 border rounded">
+          <option value="" disabled selected>Selecione o tipo</option>
+          <option value="pdf">PDF</option>
+          <option value="zip">ZIP</option>
+          <option value="link">Link</option>
+        </select>
+
+        <div id="campoArquivo" class="hidden">
+          <label class="block text-gray-700 mb-1">Arquivo (PDF ou ZIP)</label>
+          <input type="file" id="arquivo" name="conteudos" accept=".pdf,.zip" class="p-2 border rounded w-full bg-gray-50">
+        </div>
+        
+        <div id="campoLink" class="hidden">
+          <label class="block text-gray-700 mb-1">Link</label>
+          <input type="url" id="link" name="link" placeholder="https://..." class="p-2 border rounded w-full bg-gray-50">
+        </div>
+
+        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
+          Cadastrar
+        </button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= disciplina.nome %> - AcadHub</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <div id="pageData"
+       data-user-tipo="<%= user.tipo %>"
+       data-disciplina-id="<%= disciplina.id %>">
+  </div>
+
+  <script defer src="/js/disciplina.js"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex flex-col">
+  <%- include('../includes/navbar') %>
+
+    <div class="w-full p-4 sm:p-6 flex-1">
+      <div class="max-w-5xl mx-auto flex flex-col items-center mb-8 gap-2">
+        <div class="text-center">
+          <h1 class="text-base sm:text-3xl font-bold text-gray-800">
+            <%= disciplina.nome %>
+          </h1>
+          <p class="text-sm sm:text-base text-gray-600">Semestre <%= disciplina.semestre %>
+          </p>
+        </div>
+
+        <% if (user.tipo==='aluno' ) { %>
+          <button onclick="generateAiSuggestion('<%= disciplina.id %>')" id="btnSugestaoIA" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition mt-2 text-center flex items-center gap-2">
+            💡 Sugestão da IA
+          </button>
+          <% } %>
+
+            <% if (user.tipo !=='aluno' ) { %>
+              <a href="/repo/criarMateria/<%= disciplina.id %>" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition mt-2 text-center">
+                + Cadastrar Matéria
+              </a>
+              <% } %>
+      </div>
+
+      <div id="aiModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl shadow-lg max-w-md w-full p-6 text-center relative">
+          <h2 class="text-xl font-bold text-gray-800 mb-3">📘 Sugestão da IA</h2>
+          <p id="aiSuggestionText" class="text-gray-700 mb-5"></p>
+          <button onclick="closeAiModal()" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition">
+            Fechar
+          </button>
+        </div>
+      </div>
+
+      <% if (materias.length> 0) { %>
+        <% materias.forEach(m=> { %>
+          <div class="bg-white shadow rounded-lg mb-4 w-full max-w-full sm:max-w-6xl mx-auto border">
+            <button onclick="toggleDropdown('materia-<%= m.id %>')" class="w-full flex justify-between items-center px-4 py-3 bg-gray-100 hover:bg-gray-200 transition text-base sm:text-sm">
+              <span class="font-medium text-gray-800">
+                <%= m.nome %>
+              </span>
+              <span class="text-gray-600">▼</span>
+            </button>
+
+            <div id="materia-<%= m.id %>" class="hidden p-4 space-y-4">
+
+              <% if (user.tipo !=='aluno' ) { %>
+                <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-2">
+                  <a href="/repo/criarTarefa/<%= m.id %>" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition text-center w-full sm:w-auto">
+                    + Cadastrar Tarefa
+                  </a>
+                  <a href="/repo/criarConteudo/<%= m.id %>" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition text-center w-full sm:w-auto">
+                    + Cadastrar Conteúdo
+                  </a>
+                </div>
+                <% } %>
+
+                  <div>
+                    <h3 class="text-base sm:text-lg font-semibold text-blue-600 mb-2">Conteúdos</h3>
+                    <% if (m.conteudos.length> 0) { %>
+                      <ul class="space-y-2">
+                        <% m.conteudos.forEach(c=> { %>
+                          <li class="flex items-center justify-between border p-2 rounded">
+                            <div class="flex items-center gap-3">
+                              <% if (c.tipo==='pdf' ) { %>
+                                <img src="/images/pdf.webp" alt="PDF" class="w-6 h-6">
+                                <a href="/repo/conteudo/<%=session.user.curso_id%>/download/<%= c.arquivo %>" class="text-blue-600 hover:underline text-base sm:text-sm">
+                                  <%= c.nome %>
+                                </a>
+                                <% } else if (c.tipo==='zip' ) { %>
+                                  <img src="/images/zip.png" alt="ZIP" class="w-6 h-6">
+                                  <a href="/repo/conteudo/<%=session.user.curso_id%>/download/<%= c.arquivo %>" class="text-blue-600 hover:underline text-base sm:text-sm">
+                                    <%= c.nome %>
+                                  </a>
+                                  <% } else if (c.tipo==='link' ) { %>
+                                    <img src="/images/link.png" alt="Link" class="w-6 h-6">
+                                    <a href="<%= c.arquivo %>" target="_blank" class="text-blue-600 hover:underline text-base sm:text-sm">
+                                      <%= c.nome %>
+                                    </a>
+                                    <% } %>
+                            </div>
+
+                            <div class="flex items-center gap-4">
+                              <% if (user.tipo==='aluno' ) { %>
+                                <div class="flex items-center space-x-2">
+                                  <input type="checkbox" id="check-<%= c.id %>" class="w-5 h-5 accent-blue-500 cursor-pointer" <%=c.usuario_id ? 'checked' : '' %>
+                                  onchange="toggleConteudo('<%= c.id %>', this.checked, '<%= m.disciplina_id %>')"
+                                      >
+                                      <label for="check-<%= c.id %>" id="label-<%= c.id %>" class="text-sm text-gray-700">
+                                        <%= c.usuario_id ? 'Desmarcar' : 'Marcar como lido' %>
+                                      </label>
+                                </div>
+                                <% } %>
+
+                                  <% if (user.tipo !=='aluno' ) { %>
+                                    <form action="/repo/conteudo/<%= c.id %>?_method=DELETE" method="POST">
+                                      <button type="submit" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition text-sm sm:text-base">
+                                        Excluir
+                                      </button>
+                                    </form>
+                                    <% } %>
+                            </div>
+                          </li>
+
+                          <% }) %>
+                      </ul>
+                      <% } else { %>
+                        <p class="text-gray-500 italic text-base sm:text-sm">Nenhum conteúdo disponível.</p>
+                        <% } %>
+                  </div>
+
+                  <div>
+                    <h3 class="text-base sm:text-lg font-semibold text-green-600 mb-2">Tarefas</h3>
+                    <% if (m.tarefas.length> 0) { %>
+                      <ul class="space-y-2">
+                        <% m.tarefas.forEach(t=> { %>
+                          <li class="flex flex-col sm:flex-row justify-between items-start sm:items-center border p-2 rounded hover:bg-gray-50 gap-2 sm:gap-0">
+
+                            <a href="/repo/tarefa/<%= t.id %>" class="text-base sm:text-sm font-medium text-blue-600 hover:text-blue-800 transition underline sm:no-underline sm:hover:underline">
+                              <%= t.titulo %>
+                            </a>
+
+                            <a href="/repo/tarefa/<%= t.id %>" class="mt-1 sm:mt-0 bg-blue-500 text-white px-3 py-1 rounded shadow hover:bg-blue-600 hover:shadow-lg transition text-sm sm:text-base">
+                              Ver tarefa
+                            </a>
+                          </li>
+                          <% }) %>
+                      </ul>
+                      <% } else { %>
+                        <p class="text-gray-500 italic text-base sm:text-sm">Nenhuma tarefa cadastrada.</p>
+                        <% } %>
+                  </div>
+
+            </div>
+          </div>
+          <% }) %>
+            <% } else { %>
+              <p class="text-center text-gray-500 italic text-base sm:text-sm">Nenhuma matéria cadastrada nesta disciplina.</p>
+              <% } %>
+    </div>
+</body>
+
+</html>

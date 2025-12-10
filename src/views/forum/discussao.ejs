@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= discussao.discussao_titulo %></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    function enableEditFromButton(btn) {
+      const msgId = btn.dataset.msgId;
+      const conteudoAtual = JSON.parse(btn.dataset.conteudo);
+      const discussaoId = btn.dataset.discussaoId;
+      enableEdit(msgId, conteudoAtual, discussaoId);
+    }
+
+    function enableEdit(msgId, conteudoAtual, discussaoId) {
+      const msgDiv = document.getElementById("mensagem-" + msgId);
+      msgDiv.innerHTML = `
+        <form action="/forum/editarMensagem/${msgId}" method="POST" class="flex flex-col gap-2">
+          <textarea name="conteudo" class="p-2 border rounded w-full" rows="3">${conteudoAtual}</textarea>
+          <div class="flex gap-2">
+            <button type="submit" class="bg-green-500 text-white px-3 py-1 rounded">Salvar</button>
+            <button type="button" onclick="cancelEdit('${msgId}', ${JSON.stringify(conteudoAtual)})" 
+                    class="bg-gray-400 text-white px-3 py-1 rounded">Cancelar</button>
+          </div>
+          <input type="hidden" name="discussao_id" value="${discussaoId}">
+        </form>`;
+    }
+
+    function cancelEdit(msgId, conteudo) {
+      const msgDiv = document.getElementById("mensagem-" + msgId);
+      msgDiv.innerHTML = `
+        <p class="text-gray-800 whitespace-pre-line">${conteudo}</p>`;
+    }
+  </script>
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+
+  <%- include('../includes/navbar') %>
+
+  <div class="max-w-4xl mx-auto p-6 space-y-6">
+
+    <!-- Post principal -->
+    <div class="bg-white shadow rounded-lg p-6 flex gap-4">
+      <div class="w-32 text-center">
+        <a class="font-semibold text-gray-700 mb-2" href="/user/<%=discussao.criador_id%>"><%= discussao.criador_nome %></a>
+        <img src="<%= discussao.criador_foto ? '/images/users/' + discussao.criador_foto : '/images/default-user.webp' %>" 
+             alt="Foto do usuário" class="w-16 h-16 rounded-full mx-auto mb-4">
+      </div>
+
+      <div class="flex-1">
+        <div class="flex items-center gap-2 mb-2 text-sm text-gray-500">
+          <span>Postado em <%= new Date(discussao.discussao_created_at).toLocaleDateString("pt-BR") %></span>
+        </div>
+
+        <h1 class="text-2xl font-bold mb-3"><%= discussao.discussao_titulo %></h1>
+
+        <p class="text-gray-800 whitespace-pre-line"><%= discussao.discussao_texto %></p>
+
+        <% if (discussao.discussao_imagem) { %>
+          <img src="/images/forum/<%= discussao.discussao_imagem %>" 
+               alt="imagem discussão" class="rounded mb-3 max-h-96 object-cover">
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Botão abrir/fechar fórum -->
+    <div class="flex justify-between items-center">
+      <div>
+        <% if (session.user && (session.user.id === discussao.criador_id || ['professor','diretor','admin'].includes(session.user.tipo))) { %>
+          <% if (discussao.discussao_fechado==0) { %>
+            <a href="/forum/fecharDiscussao/<%= discussao_id %>" 
+               class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">
+              Fechar Fórum
+            </a>
+          <% } else { %>
+            <a href="/forum/abrirDiscussao/<%= discussao_id %>" 
+               class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">
+              Abrir Fórum
+            </a>
+          <% } %>
+        <% } %>
+      </div>
+
+      <% if (session.user.tipo === 'admin') { %>
+        <a href="/forum/gerarResumo/<%= discussao_id %>"
+           class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
+          🔄 Gerar resumo com IA
+        </a>
+      <% } %>
+    </div>
+
+    <% if (discussao.discussao_texto_IA) { %>
+      <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded mb-6">
+        <h3 class="font-semibold text-yellow-700 mb-2">🧠 Resumo da discussão:</h3>
+        <p class="text-gray-800"><%= discussao.discussao_texto_IA %></p>
+      </div>
+    <% } %>
+
+    <!-- Lista de mensagens -->
+    <div class="space-y-4">
+      <% if (!mensagens || mensagens.length === 0 || mensagens[0].mensagem_conteudo === null) { %>
+        <p class="text-gray-500">Nenhuma mensagem encontrada.</p>
+      <% } else { %>
+        <% mensagens.forEach(mensagem=> { %>
+          <div class="bg-white shadow rounded-lg p-4 flex gap-4 relative">
+            <div class="w-32 text-center">
+              <a class="font-semibold text-gray-700 mb-2" href="/user/<%= mensagem.usuario_id %>"><%= mensagem.usuario_nome %></a>
+              <img src="<%= mensagem.usuario_foto ? '/images/users/' + mensagem.usuario_foto : '/images/default-user.webp' %>" 
+                   alt="Foto do usuário" class="w-16 h-16 rounded-full mx-auto mb-4">
+
+                    <div class="flex flex-wrap justify-center gap-1 mt-2">
+                      <% 
+                        const medalhasDoUsuario = mensagens
+                          .filter(m => m.usuario_id === mensagem.usuario_id && m.medalha_imagem)
+                          .map(m => ({ nome: m.medalha_nome, img: m.medalha_imagem }));
+
+                        const unicas = [];
+                        const nomes = new Set();
+                        medalhasDoUsuario.forEach(m => {
+                          if (!nomes.has(m.nome)) {
+                            nomes.add(m.nome);
+                            unicas.push(m);
+                          }
+                        });
+                      %>
+
+                      <% unicas.forEach(m => { %>
+                        <img 
+                          src="/images/medalhas/<%= m.img %>" 
+                          alt="<%= m.nome %>" 
+                          title="<%= m.nome %>"
+                          class="w-6 h-6 object-contain"
+                        >
+                      <% }) %>
+                    </div>
+
+              <div class="mt-6">
+                <% if (mensagem.usuario_tipo==="admin" ) { %>
+                  <span class="text-xs text-red-500 font-bold">Administrador</span>
+                <% } %>
+                <% if (mensagem.usuario_tipo==="professor" ) { %>
+                  <span class="text-xs text-green-500 font-bold">Professor</span>
+                <% } %>
+                <% if (mensagem.usuario_tipo==="aluno" ) { %>
+                  <span class="text-xs text-blue-500 font-bold">Aluno</span>
+                <% } %>
+              </div>
+            </div>
+
+            <div class="flex-1 flex flex-col">
+              <div class="flex items-center gap-2 mb-2 text-sm text-gray-500">
+                <span>Postado em <%= new Date(mensagem.mensagem_created_at).toLocaleDateString("pt-BR") %>
+                  <% if (mensagem.mensagem_editada) { %> (editada) <% } %>
+                </span>
+                <% if (mensagem.usuario_id===discussao.criador_id) { %>
+                  <span class="ml-auto bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">
+                    Author
+                  </span>
+                <% } %>
+              </div>
+
+              <div id="mensagem-<%= mensagem.mensagem_id %>" class="flex-1">
+                <p class="text-gray-800 whitespace-pre-line"><%= mensagem.mensagem_conteudo %></p>
+
+                <% if (mensagem.conteudo_tipo) { %>
+                  <div class="mt-2 flex items-center gap-2">
+                    <% if (mensagem.conteudo_tipo === 'pdf') { %>
+                      <img src="/images/pdf.webp" class="w-5 h-5">
+                      <a href="/repo/conteudo/<%=session.user.curso_id%>/download/<%= mensagem.conteudo_arquivo %>" class="text-blue-600 hover:underline">
+                        <%= mensagem.conteudo_nome %>
+                      </a>
+                    <% } else if (mensagem.conteudo_tipo === 'zip') { %>
+                      <img src="/images/zip.png" class="w-5 h-5">
+                      <a href="/repo/conteudo/<%=session.user.curso_id%>/download/<%= mensagem.conteudo_arquivo %>" class="text-blue-600 hover:underline">
+                        <%= mensagem.conteudo_nome %>
+                      </a>
+                    <% } else if (mensagem.conteudo_tipo === 'link') { %>
+                      <img src="/images/link.png" class="w-5 h-5">
+                      <a href="<%= mensagem.conteudo_arquivo %>" target="_blank" class="text-blue-600 hover:underline">
+                        <%= mensagem.conteudo_nome %>
+                      </a>
+                    <% } %>
+                  </div>
+                <% } %>
+              </div>
+
+              <% if (discussao.discussao_fechado==0 && session.user && (session.user.id === mensagem.usuario_id || ['professor','diretor','admin'].includes(session.user.tipo))) { %>
+                <div class="flex justify-end gap-2 mt-3">
+                  <button 
+                    data-msg-id="<%= mensagem.mensagem_id %>"
+                    data-conteudo="<%- JSON.stringify(mensagem.mensagem_conteudo).replace(/"/g, '&quot;') %>" 
+                    data-discussao-id="<%= discussao.discussao_id %>"
+                    onclick="enableEditFromButton(this)"
+                    class="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-1 rounded transition">
+                    ✏️ Editar
+                  </button>
+
+                  <form action="/forum/deletarMensagem/<%= mensagem.mensagem_id %>" method="POST" onsubmit="return confirm('Deseja excluir esta mensagem?')">
+                    <input type="hidden" name="usuario_id" value="<%=mensagem.usuario_id%>">
+                    <input type="hidden" name="discussao_id" value="<%=mensagem.discussao_id%>">
+                    <button type="submit" 
+                            class="flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white text-sm px-3 py-1 rounded transition">
+                      🗑️ Excluir
+                    </button>
+                  </form>
+                </div>
+              <% } %>
+            </div>
+          </div>
+        <% }) %>
+
+        <!-- Paginação -->
+        <div class="flex justify-center mt-6 space-x-2">
+          <a href="?page=<%= page > 1 ? page - 1 : 1 %>" 
+             class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 <%= page === 1 ? 'opacity-50 cursor-not-allowed' : '' %>">
+            &laquo; Anterior
+          </a>
+          <% 
+            const maxPagesToShow = 5;
+            let startPage = Math.max(1, page - Math.floor(maxPagesToShow / 2));
+            let endPage = startPage + maxPagesToShow - 1;
+            if (endPage > totalPages) {
+              endPage = totalPages;
+              startPage = Math.max(1, endPage - maxPagesToShow + 1);
+            }
+          %>
+          <% for (let i = startPage; i <= endPage; i++) { %>
+            <a href="?page=<%= i %>" 
+               class="px-3 py-1 rounded <%= i === page ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300' %>">
+              <%= i %>
+            </a>
+          <% } %>
+          <a href="?page=<%= page < totalPages ? page + 1 : totalPages %>" 
+             class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 <%= page === totalPages ? 'opacity-50 cursor-not-allowed' : '' %>">
+            Próximo &raquo;
+          </a>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- Formulário de nova mensagem -->
+    <% if (discussao.discussao_fechado==0) { %>
+      <div class="bg-white shadow rounded-lg p-6">
+        <h2 class="text-xl font-semibold mb-3">Escreva sua resposta</h2>
+        <form action="/forum/cadastrarMensagem" method="POST" class="flex flex-col gap-3">
+          <% if (error) { %>
+            <p class="text-red-500"><%= error %></p>
+          <% } %>
+          <textarea name="conteudo" placeholder="Digite sua mensagem..." required rows="4" 
+                    class="p-2 border rounded w-full"></textarea>
+
+          <!-- Select de materiais do curso -->
+          <label for="conteudo_id" class="font-semibold">Linkar material (opcional):</label>
+          <select name="conteudo_id" class="p-2 border rounded w-full">
+            <option value="">-- Nenhum --</option>
+            <% conteudosDoCurso.forEach(m => { %>
+              <option value="<%= m.id %>"><%= m.conteudo_nome %></option>
+            <% }) %>
+          </select>
+
+          <input type="hidden" name="discussao_id" value="<%= discussao_id %>">
+          <button type="submit" 
+                  class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
+            Enviar
+          </button>
+        </form>
+      </div>
+    <% } %>
+
+  </div>
+</body>
+</html>

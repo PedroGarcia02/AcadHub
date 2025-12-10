@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Home - AcadHub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer>
+    function toggleDropdown(id) {
+      const el = document.getElementById(id);
+      el.classList.toggle("hidden");
+    }
+  </script>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex flex-col">
+  <%- include('../includes/navbar') %>
+
+  <div class="w-full p-4 sm:p-6 flex-1">
+    <div class="text-center mb-8 sm:mb-10">
+      <h1 class="text-base sm:text-3xl font-bold text-gray-800"><%= user.instituicao_nome %></h1>
+      <p class="text-sm sm:text-base text-gray-600 mt-1">Bem-vindo, <%= user.nome %>!</p>
+    </div>
+
+    <% if (cursos && cursos.length > 0) { %>
+      <% cursos.forEach(c => { %>
+        <div class="bg-white shadow rounded-lg p-4 sm:p-6 mb-6 w-full max-w-full sm:max-w-6xl mx-auto">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2 sm:gap-0">
+            <h2 class="text-base sm:text-2xl font-semibold text-blue-600"><%= c.nome %></h2>
+            <% if (user.tipo !== 'aluno') { %>
+              <a href="/repo/criarDisciplina/<%= c.id %>" 
+                 class="bg-blue-500 text-white text-sm px-3 py-2 rounded hover:bg-blue-600 transition w-full sm:w-auto text-center">
+                + Cadastrar Disciplina
+              </a>
+            <% } %>
+          </div>
+
+          <% const cursoSemestres = semestresPorCurso[c.id]; %>
+          <div class="space-y-2">
+            <% Object.keys(cursoSemestres).forEach(semestre => { %>
+              <div class="border rounded-lg overflow-hidden">
+                <button 
+                  onclick="toggleDropdown('semestre-<%= c.id %>-<%= semestre %>')" 
+                  class="w-full flex justify-between items-center px-4 py-3 bg-gray-100 hover:bg-gray-200 transition text-base sm:text-sm">
+                  <span class="font-medium text-gray-800">Semestre <%= semestre %></span>
+                  <span class="text-gray-600">▼</span>
+                </button>
+
+                <div id="semestre-<%= c.id %>-<%= semestre %>" class="hidden bg-white w-full">
+                  <% if (cursoSemestres[semestre].length > 0) { %>
+                    <% cursoSemestres[semestre].forEach(d => { %>
+                      <div class="border-t px-4 sm:px-6 py-3 hover:bg-gray-50 flex justify-between items-center text-lg sm:text-base">
+                        <a href="/repo/disciplina/<%= d.id %>" 
+                           class="text-blue-600 hover:underline font-medium break-words">
+                          <%= d.nome %>
+                        </a>
+                        <span class="text-gray-500 text-base sm:text-sm">Acessar</span>
+                      </div>
+                    <% }) %>
+                  <% } else { %>
+                    <div class="border-t px-4 sm:px-6 py-3 text-gray-500 italic text-lg sm:text-base">
+                      Nenhuma disciplina cadastrada neste semestre.
+                    </div>
+                  <% } %>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        </div>
+      <% }) %>
+    <% } else { %>
+      <div class="text-center text-gray-500 mt-8 text-base sm:text-lg">
+        Nenhum curso encontrado para esta instituição.
+      </div>
+    <% } %>
+  </div>
+</body>
+</html>

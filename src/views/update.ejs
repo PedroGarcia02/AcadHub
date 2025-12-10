@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Editar Usuário</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <%- include('includes/navbar') %>
+
+  <div class="flex items-center justify-center min-h-[calc(100vh-64px)]">
+    <div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
+      
+      <h1 class="text-2xl font-bold text-center mb-4">Editar Usuário</h1>
+
+      <div class="flex justify-center mb-4">
+        <img 
+          src="<%= user[0].foto ? '/images/users/' + user[0].foto : '/images/default-user.webp' %>" 
+          alt="Foto de perfil" 
+          class="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-gray-200 mx-auto sm:mx-0"
+          >
+      </div>
+
+      <form 
+        action="/updateUser/<%= user[0].id %>" 
+        method="POST" 
+        enctype="multipart/form-data"
+        class="flex flex-col gap-3 mb-4"
+      >
+        <input type="text" name="nome" value="<%= user[0].nome %>" required class="p-2 border rounded" />
+
+        <input type="email" name="email" value="<%= user[0].email %>" required class="p-2 border rounded" />
+
+        <input type="file" name="user" accept="image/*" class="p-2 border rounded" />
+
+        <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">
+          Atualizar
+        </button>
+      </form>
+    </div>
+  </div>
+
+</body>
+</html>

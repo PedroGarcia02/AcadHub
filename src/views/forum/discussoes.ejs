@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fórum - Discussões</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex flex-col">
+  <%- include('../includes/navbar') %>
+
+  <main class="flex-1 w-full px-4 sm:px-6 py-6 sm:py-10">
+    <div class="mx-auto w-full sm:max-w-4xl">
+      
+      <!-- Cabeçalho -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 text-center sm:text-left">
+          Discussões do Fórum
+        </h1>
+
+        <a href="/forum/criarDiscussao?topico_id=<%= topico_id %>" 
+           class="flex items-center justify-center bg-blue-600 text-white px-5 py-3 sm:py-2 rounded-xl shadow hover:bg-blue-700 transition text-base sm:text-sm font-medium w-full sm:w-auto">
+          <span class="mr-2 text-xl font-bold">+</span> Criar Discussão
+        </a>
+      </div>
+
+      <!-- Lista de discussões -->
+      <div class="bg-white shadow rounded-xl divide-y divide-gray-200">
+        <% if (discussoes.length === 0) { %>
+          <div class="p-5 text-gray-500 text-center text-base sm:text-lg">
+            Nenhuma discussão encontrada.
+          </div>
+        <% } else { %>
+          <% discussoes.forEach(discussao => { %>
+            <a href="/forum/discussao/<%= discussao.discussao_id %>" 
+               class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 hover:bg-gray-50 transition-all">
+
+              <!-- Info principal -->
+              <div class="flex-1">
+                <h2 class="text-lg sm:text-xl font-semibold text-green-700 hover:underline flex items-center gap-2 break-words">
+                  <%= discussao.discussao_titulo %>
+                  <% if (discussao.discussao_pinned === 1) { %>
+                    <img src="/images/pin.png" alt="Pinned" class="w-4 h-4">
+                  <% } %>
+                </h2>
+                <p class="text-sm sm:text-base text-gray-600 mt-1 leading-snug">
+                  Por <%= discussao.usuario_nome %> — 
+                  <%= new Date(discussao.discussao_created_at).toLocaleDateString("pt-BR") %>
+                </p>
+              </div>
+
+              <!-- Info lateral (mensagens + imagem) -->
+              <div class="flex flex-wrap items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
+
+                <p class="text-sm text-gray-500 flex items-center gap-1 whitespace-nowrap">
+                  💬 <%= discussao.replies || 0 %> Mensagens
+                </p>
+
+                <% if (session.user && session.user.tipo !== 'aluno') { %>
+                  <% if (discussao.discussao_pinned === 1) { %>
+                    <form action="/forum/despinar/<%= discussao.discussao_id %>" method="POST">
+                      <input type="hidden" name="topico_id" value="<%=topico_id%>">
+                      <button type="submit" class="text-xs bg-gray-200 px-3 py-2 rounded-lg hover:bg-gray-300">
+                        Desfixar
+                      </button>
+                    </form>
+                  <% } else { %>
+                    <form action="/forum/pinar/<%= discussao.discussao_id %>" method="POST">
+                      <input type="hidden" name="topico_id" value="<%=topico_id%>">
+                      <button type="submit" class="text-xs bg-gray-200 px-3 py-2 rounded-lg hover:bg-gray-300">
+                        Fixar
+                      </button>
+                    </form>
+                  <% } %>
+                <% } %>
+
+                <img src="<%= discussao.usuario_foto ? '/images/users/' + discussao.usuario_foto : '/images/default-user.webp' %>" 
+                     alt="Foto do usuário"
+                     class="w-12 h-12 rounded-full object-cover border border-gray-300">
+              </div>
+            </a>
+          <% }) %>
+        <% } %>
+      </div>
+
+      <!-- Paginação -->
+      <% if (totalPages > 1) { %>
+      <div class="flex justify-center mt-6 flex-wrap gap-2 items-center">
+        <!-- Botão Anterior -->
+        <a href="?page=<%= page > 1 ? page - 1 : 1 %>"
+           class="px-3 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition text-sm <%= page === 1 ? 'opacity-50 cursor-not-allowed' : '' %>">
+          ← Anterior
+        </a>
+
+        <% 
+          const maxPagesToShow = 5;
+          let startPage = Math.max(1, page - Math.floor(maxPagesToShow / 2));
+          let endPage = startPage + maxPagesToShow - 1;
+          if (endPage > totalPages) {
+            endPage = totalPages;
+            startPage = Math.max(1, endPage - maxPagesToShow + 1);
+          }
+        %>
+
+        <% for(let i = startPage; i <= endPage; i++) { %>
+          <a href="?page=<%= i %>" 
+             class="px-3 py-2 rounded-lg transition text-sm <%= i === page ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' %>">
+            <%= i %>
+          </a>
+        <% } %>
+
+        <!-- Botão Próximo -->
+        <a href="?page=<%= page < totalPages ? page + 1 : totalPages %>"
+           class="px-3 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition text-sm <%= page === totalPages ? 'opacity-50 cursor-not-allowed' : '' %>">
+          Próximo →
+        </a>
+      </div>
+      <% } %>
+
+    </div>
+  </main>
+</body>
+</html>

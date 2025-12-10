@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Cadastrar Tarefa</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    function toggleArquivo() {
+      const tipo = document.getElementById("tipo").value;
+      const campoArquivo = document.getElementById("campoArquivo");
+      const campoLink = document.getElementById("campoLink");
+
+      if (tipo === "arquivo") {
+        campoArquivo.classList.remove("hidden");
+        campoLink.classList.add("hidden");
+        document.getElementById("arquivo").required = true;
+        document.getElementById("link").required = false;
+      } else if (tipo === "link") {
+        campoArquivo.classList.add("hidden");
+        campoLink.classList.remove("hidden");
+        document.getElementById("arquivo").required = false;
+        document.getElementById("link").required = true;
+      } else {
+        campoArquivo.classList.add("hidden");
+        campoLink.classList.add("hidden");
+        document.getElementById("arquivo").required = false;
+        document.getElementById("link").required = false;
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+  <%- include('../includes/navbar') %>
+
+  <div class="flex items-center justify-center min-h-[calc(100vh-64px)]">
+    <div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
+      <h1 class="text-2xl font-bold text-center mb-4">Cadastrar Tarefa</h1>
+      
+      <form action="/repo/cadastrarTarefa" method="POST" enctype="multipart/form-data" class="flex flex-col gap-3 mb-4">
+        <% if (error) { %>
+          <p class="text-red-500 text-center"><%= error %></p>
+        <% } %>
+
+        <input type="text" name="titulo" placeholder="Digite o título da tarefa" value="<%= formData ? formData.titulo : '' %>" required class="p-2 border rounded">
+
+        <textarea name="descricao" placeholder="Descrição detalhada da tarefa" required class="p-2 border rounded resize-none h-24"><%= formData ? formData.descricao : '' %></textarea>
+
+        <input type="number" name="valor" placeholder="Nota máxima da tarefa" value="<%= formData ? formData.valor : '' %>" required class="p-2 border rounded">
+
+        <input type="date" name="data_entrega" value="<%= formData ? formData.data_entrega : '' %>" required class="p-2 border rounded">
+
+        <input type="hidden" name="materia_id" value="<%= materia_id %>">
+
+        <select id="tipo" name="tipo" onchange="toggleArquivo()" class="p-2 border rounded">
+          <option value="" selected disabled>Deseja adicionar arquivo ou link?</option>
+          <option value="arquivo">Arquivo (PDF ou ZIP)</option>
+          <option value="link">Link</option>
+        </select>
+
+        <div id="campoArquivo" class="hidden">
+          <label class="block text-gray-700 mb-1">Selecione um arquivo (PDF ou ZIP)</label>
+          <input type="file" id="arquivo" name="tarefa" accept=".pdf,.zip" class="p-2 border rounded w-full bg-gray-50">
+        </div>
+
+        <div id="campoLink" class="hidden">
+          <label class="block text-gray-700 mb-1">Insira o link</label>
+          <input type="url" id="link" name="link" placeholder="https://..." class="p-2 border rounded w-full bg-gray-50">
+        </div>
+
+        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition mt-2">
+          Cadastrar
+        </button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fórum - Tópicos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+  <%- include('../includes/navbar') %>
+
+  <main class="flex-1 w-full px-4 sm:px-6 py-6 sm:py-10">
+    <div class="mx-auto w-full sm:max-w-3xl">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 text-center sm:text-left">
+          Tópicos do Fórum
+        </h1>
+
+        <% if (session.user.tipo !== 'aluno') { %>
+          <a href="/forum/criarTopico"
+             class="flex items-center justify-center bg-blue-600 text-white px-5 py-3 sm:py-2 rounded-xl shadow hover:bg-blue-700 transition text-base sm:text-sm font-medium w-full sm:w-auto">
+            <span class="mr-2 text-xl font-bold">+</span> Criar Tópico
+          </a>
+        <% } %>
+      </div>
+
+      <!-- Lista de tópicos -->
+      <div class="flex flex-col gap-4">
+        <% if (topicos.length === 0) { %>
+          <div class="bg-white shadow rounded-xl p-5 text-gray-500 text-center text-base sm:text-lg">
+            Nenhum tópico encontrado.
+          </div>
+        <% } else { %>
+          <% topicos.forEach(topico => { %>
+            <div class="bg-white shadow rounded-xl p-5 hover:bg-gray-50 transition-all w-full">
+              
+              
+              <a href="/forum/topico/<%= topico.id %>" class="block mb-3">
+                <h2 class="text-lg sm:text-xl font-semibold text-blue-600 hover:underline flex items-center gap-2 break-words">
+                  <%= topico.titulo %>
+                  <% if (topico.pinned === 1) { %>
+                    <img src="/images/pin.png" alt="Pinned" class="w-4 h-4">
+                  <% } %>
+                </h2>
+                <p class="text-sm sm:text-base text-gray-600 mt-1 leading-snug">
+                  <%= topico.descricao || "Sem descrição disponível." %>
+                </p>
+              </a>
+
+              <div class="flex flex-wrap justify-between sm:justify-end items-center gap-3 text-sm text-gray-500">
+                <p class="flex items-center gap-1 whitespace-nowrap">
+                  <%= topico.qtd_discussoes || 0 %> Discussões
+                </p>
+
+                <% if (session.user && session.user.tipo !== 'aluno') { %>
+                  <% if (topico.pinned === 1) { %>
+                    <form action="/forum/despinarTopico/<%= topico.id %>" method="POST">
+                      <button type="submit" class="bg-gray-200 px-3 py-2 rounded-lg hover:bg-gray-300 text-xs sm:text-sm w-full sm:w-auto">
+                        Desfixar
+                      </button>
+                    </form>
+                  <% } else { %>
+                    <form action="/forum/pinarTopico/<%= topico.id %>" method="POST">
+                      <button type="submit" class="bg-gray-200 px-3 py-2 rounded-lg hover:bg-gray-300 text-xs sm:text-sm w-full sm:w-auto">
+                        Fixar
+                      </button>
+                    </form>
+                  <% } %>
+                <% } %>
+              </div>
+            </div>
+          <% }) %>
+        <% } %>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

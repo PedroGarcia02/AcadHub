@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Criar - Topico</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/slim-select@2.6.0/dist/slimselect.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/slim-select@2.6.0/dist/slimselect.min.js"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+  <%- include('../includes/navbar') %>
+
+    <div class="flex items-center justify-center min-h-[calc(100vh-64px)]">
+      <div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
+        <h1 class="text-2xl font-bold text-center mb-4">Cadastrar Topico</h1>
+        <form action="/forum/cadastrarTopico" method="POST" class="flex flex-col gap-3 mb-4">
+          <% if (error) { %>
+            <p style="color: red;">
+              <%= error %>
+            </p>
+            <% } %>
+              <input type="text" name="titulo" placeholder="titulo" value="<%= formData ? formData.titulo : '' %>" required class="p-2 border rounded">
+              <input type="text" name="descricao" placeholder="Descrição" required class="p-2 border rounded">
+              <select name="curso_id" id="curso" class="p-2 border rounded">
+                <option value="" selected hidden>Todos Cursos</option>
+                <% cursos.forEach(curso => { %>
+                  <option value="<%=curso.id%>"><%=curso.nome%></option>
+                <% }) %>
+              </select>
+              <input type="hidden" name="instituicao_id" value="<%=instituicao_id%>">
+              <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
+                Cadastrar
+              </button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      new SlimSelect({
+        select: '#curso',
+        placeholder: 'Digite para buscar...',
+        showSearch: true
+      })
+    </script>
+
+</body>
+
+</html>

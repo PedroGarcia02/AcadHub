@@ -1,0 +1,56 @@
+<nav class="bg-gray-800 p-4 relative z-50">
+  <div class="max-w-7xl mx-auto flex justify-between items-center">
+
+    <div class="text-white text-xl font-semibold">
+      <a href="/">AcadHub</a>
+    </div>
+
+    <div class="md:hidden relative">
+      <button id="menu-btn" class="text-white focus:outline-none">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+             xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+      </button>
+
+      <div id="mobile-menu" class="hidden absolute right-0 mt-2 w-48 bg-gray-900 rounded-md shadow-lg py-2 flex flex-col space-y-1 z-50">
+        <% if (!session.user) { %>
+          <a href="/login" class="text-white px-4 py-2 hover:bg-blue-500 rounded-md">Login</a>
+        <% } else { %>
+          <a href="/user/<%= session.user.id %>" class="text-white px-4 py-2 hover:bg-blue-500 rounded-md">Perfil</a>
+          <a href="/repo/" class="text-white px-4 py-2 hover:bg-blue-500 rounded-md">Materiais</a>
+          <a href="/forum/" class="text-white px-4 py-2 hover:bg-blue-500 rounded-md">Forum</a>
+          <a href="/logout" class="text-white px-4 py-2 hover:bg-blue-500 rounded-md">Logout</a>
+        <% } %>
+        <% if (session.user && (session.user.tipo == 'admin' || session.user.tipo == 'diretor')) { %>
+          <a href="/cadastro" class="text-white px-4 py-2 hover:bg-blue-500 rounded-md">Painel</a>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="hidden md:flex space-x-3 items-center">
+      <% if (!session.user) { %>
+        <a href="/login" class="text-white hover:bg-blue-500 px-3 py-2 rounded-md">Login</a>
+      <% } else { %>
+        <a href="/user/<%= session.user.id %>" class="text-white hover:bg-blue-500 px-4 py-2 rounded-md">Perfil</a>
+        <a href="/repo/" class="text-white hover:bg-blue-500 px-3 py-2 rounded-md">Materiais</a>
+        <a href="/forum/" class="text-white hover:bg-blue-500 px-3 py-2 rounded-md">Forum</a>
+        <a href="/logout" class="text-white hover:bg-blue-500 px-3 py-2 rounded-md">Logout</a>
+      <% } %>
+      <% if (session.user && (session.user.tipo == 'admin' || session.user.tipo == 'diretor')) { %>
+        <a href="/painel" class="text-white hover:bg-blue-500 px-3 py-2 rounded-md">Painel</a>
+      <% } %>
+    </div>
+
+  </div>
+</nav>
+
+<script>
+  const btn = document.getElementById('menu-btn');
+  const menu = document.getElementById('mobile-menu');
+
+  btn.addEventListener('click', () => {
+    menu.classList.toggle('hidden');
+  });
+</script>

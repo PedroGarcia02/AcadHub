@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= user.nome %> - Perfil</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/perfil.css">
+</head>
+
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+    <%- include('includes/navbar') %>
+
+    <main class="flex-1 w-full px-4 sm:px-6 py-6 sm:py-10">
+        <div class="mx-auto w-full sm:max-w-4xl bg-white rounded-2xl shadow-md p-6 sm:p-8">
+
+            <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+                <img 
+                    src="<%= user.foto ? '/images/users/' + user.foto : '/images/default-user.webp' %>" 
+                    alt="Foto de perfil" 
+                    class="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-gray-200 mx-auto sm:mx-0"
+                >
+
+                <div class="text-center sm:text-left">
+                    <h1 class="text-xl sm:text-2xl font-semibold text-gray-800"><%= user.nome %></h1>
+                    <p class="text-gray-500 break-all"><%= user.email %></p>
+                    <p class="text-gray-500 capitalize">Tipo: <%= user.tipo %></p>
+                </div>
+            </div>
+
+            <div class="mt-8">
+                <h2 class="text-lg sm:text-xl font-semibold text-gray-700 mb-4 text-center sm:text-left">
+                    Pontuações
+                </h2>
+
+                <% const tipos=[ 
+                    { key: "forum" , label: "Pontos de Fórum" , bronze: 50, prata: 100, ouro: 200 }, 
+                    { key: "conteudo" , label: "Pontos de Conteúdo" , bronze: 50, prata: 100, ouro: 200 }, 
+                    { key: "tarefa" , label: "Pontos de Tarefas" , bronze: 50, prata: 100, ouro: 200 } 
+                ]; %>
+
+                <% tipos.forEach(t=> { 
+                    const pontos = user.pontosPorTipo[t.key] || 0;
+                    const porcentagem = Math.min((pontos / t.ouro) * 100, 100);
+                %>
+
+                <div class="mb-6">
+                    <p class="font-semibold text-gray-700 mb-1"><%= t.label %></p>
+
+                    <div class="relative w-full bg-gray-200 rounded-full h-4">
+                        <div class="progress-bar" data-percent="<%= porcentagem %>"></div>
+
+                        <div class="absolute -top-4 sm:-top-3 left-[25%] text-xs tooltip hidden sm:block">
+                            🥉
+                            <span class="tooltiptext">Bronze - <%= t.bronze %> pontos</span>
+                        </div>
+
+                        <div class="absolute -top-4 sm:-top-3 left-[50%] text-xs tooltip hidden sm:block">
+                            🥈
+                            <span class="tooltiptext">Prata - <%= t.prata %> pontos</span>
+                        </div>
+
+                        <div class="absolute -top-4 sm:-top-3 left-[100%] translate-x-[-50%] text-xs tooltip hidden sm:block">
+                            🥇
+                            <span class="tooltiptext">Ouro - <%= t.ouro %> pontos</span>
+                        </div>
+                    </div>
+
+                    <p class="text-sm text-gray-600 mt-1"><%= pontos %> pontos</p>
+                </div>
+
+                <% }) %>
+            </div>
+            
+            <div class="mt-10">
+                <h2 class="text-lg sm:text-xl font-semibold text-gray-700 mb-4 text-center sm:text-left">
+                    Medalhas Conquistadas
+                </h2>
+
+                <% if (user.medalhas && user.medalhas.length > 0) { %>
+
+                <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                    <% user.medalhas.forEach(medalha=> { 
+                        const nomeCorrigido = decodeURIComponent(escape(medalha.nome)); 
+                        const dataFormatada = new Date(medalha.data_conquista).toLocaleDateString('pt-BR');
+                    %>
+                    <div class="flex flex-col items-center tooltip">
+                        <img src="/images/medalhas/<%= medalha.imagem %>" 
+                             alt="<%= nomeCorrigido %>" 
+                             class="w-16 h-16 sm:w-20 sm:h-20 object-contain">
+                        <p class="text-xs sm:text-sm text-gray-700 mt-1 text-center"><%= nomeCorrigido %></p>
+                        <span class="tooltiptext">Conquistada em <%= dataFormatada %></span>
+                    </div>
+                    <% }) %>
+                </div>
+
+                <% } else { %>
+                <p class="text-gray-500 text-center sm:text-left">Nenhuma medalha conquistada ainda.</p>
+                <% } %>
+            </div>
+
+            <div class="mt-10 flex flex-col sm:flex-row justify-end gap-3">
+                <a href="/updateSenha" 
+                   class="px-4 py-3 sm:py-2 text-center bg-blue-600 text-white rounded-lg hover:bg-blue-700 w-full sm:w-auto">
+                    Trocar Senha
+                </a>
+
+                <a href="/updateUser/<%= user.id %>" 
+                   class="px-4 py-3 sm:py-2 text-center bg-blue-600 text-white rounded-lg hover:bg-blue-700 w-full sm:w-auto">
+                    Editar Perfil
+                </a>
+
+                <form action="/deleteUser/<%= user.id %>" method="POST"
+                      class="w-full sm:w-auto"
+                      onsubmit="return confirm('Deseja realmente excluir este usuário?')">
+
+                    <button type="submit" 
+                            class="px-4 py-3 sm:py-2 w-full bg-red-600 text-white rounded-lg hover:bg-red-700">
+                        Excluir
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="/js/perfil.js"></script>
+
+</body>
+</html>

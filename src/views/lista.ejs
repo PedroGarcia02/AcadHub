@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lista de Usuários</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+  <%- include('includes/navbar') %>
+
+  <div class="max-w-6xl mx-auto mt-10 bg-white p-6 rounded-lg shadow-lg">
+    <h1 class="text-2xl font-bold mb-4 text-center">Lista de Usuários</h1>
+
+    <form method="GET" action="/users" class="mb-6 flex justify-center">
+      <input
+        type="text"
+        name="filter"
+        placeholder="Buscar por nome..."
+        value="<%= filter || '' %>"
+        class="border px-4 py-2 rounded-l w-1/2"
+      />
+      <input type="hidden" name="pagina" value="1" />
+      <button
+        type="submit"
+        class="bg-blue-500 text-white px-4 py-2 rounded-r hover:bg-blue-600 transition"
+      >
+        Filtrar
+      </button>
+    </form>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <thead class="bg-gray-800 text-white">
+          <tr>
+            <th class="px-4 py-2 text-left">#</th>
+            <th class="px-4 py-2 text-left">Nome</th>
+            <th class="px-4 py-2 text-left">CPF</th>
+            <th class="px-4 py-2 text-left">Email</th>
+            <th class="px-4 py-2 text-left">Role</th>
+            <% if (session.user?.role === 'ADMIN') { %>
+              <th class="px-4 py-2 text-left">Ações</th>
+            <% } %>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% users.forEach(user => { %>
+            <tr>
+              <td class="px-4 py-2 text-blue-600 font-bold">
+                <a href="/user/<%= user.id %>">#<%= user.id %></a>
+              </td>
+              <td class="px-4 py-2"><%= user.nome %></td>
+              <td class="px-4 py-2"><%= user.cpf %></td>
+              <td class="px-4 py-2"><%= user.email %></td>
+              <td class="px-4 py-2"><%= user.role %></td>
+              <% if (session.user?.role === 'ADMIN') { %>
+                <td class="px-4 py-2 space-x-2">
+                  <a href="/updateUser/<%= user.id %>" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition">Update</a>
+                  <form action="/deleteUser/<%= user.id %>" method="GET" class="inline">
+                    <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition">Delete</button>
+                  </form>
+                </td>
+              <% } %>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-6 flex justify-center space-x-2">
+      <% for (let i = 1; i <= totalPages; i++) { %>
+        <a
+          href="/users?pagina=<%= i %><%= filter ? '&filter=' + encodeURIComponent(filter) : '' %>"
+          class="px-3 py-1 border rounded 
+            <%= currentPage === i ? 'bg-blue-600 text-white' : 'bg-white text-blue-600 hover:bg-blue-100' %>">
+          <%= i %>
+        </a>
+      <% } %>
+    </div>
+  </div>
+</body>
+</html>

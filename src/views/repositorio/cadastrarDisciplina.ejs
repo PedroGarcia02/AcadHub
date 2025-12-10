@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Cadastrar Disciplina</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+  <%- include('../includes/navbar') %>
+
+  <div class="flex items-center justify-center min-h-[calc(100vh-64px)]">
+    <div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
+      <h1 class="text-2xl font-bold text-center mb-4">Cadastrar Disciplina</h1>
+      
+      <form action="/repo/cadastrarDisciplina" method="POST" class="flex flex-col gap-3 mb-4">
+        <% if (error) { %>
+          <p class="text-red-500 text-center"><%= error %></p>
+        <% } %>
+
+        <input type="text" name="nome" placeholder="Nome da disciplina" value="<%= formData ? formData.nome : '' %>" required class="p-2 border rounded">
+
+        <label for="semestre" class="text-gray-700 text-sm font-medium">Semestre</label>
+        <select name="semestre" id="semestre" class="p-2 border rounded" required>
+          <% for (let i = 1; i <= curso.semestres; i++) { %>
+            <option value="<%= i %>"><%= i %>º semestre</option>
+          <% } %>
+        </select>
+
+        <input type="hidden" name="curso_id" value="<%= curso.id %>">
+
+        <button 
+          type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
+          Cadastrar
+        </button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

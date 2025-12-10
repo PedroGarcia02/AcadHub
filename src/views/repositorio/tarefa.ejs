@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= tarefa.titulo %> - AcadHub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+  <%- include('../includes/navbar') %>
+
+  <div class="w-full px-4 sm:px-6 flex justify-center mt-6">
+    <div class="w-full max-w-full sm:max-w-4xl lg:max-w-5xl bg-white shadow-md rounded-lg p-4 sm:p-6">
+
+      <div class="mb-6">
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800"><%= tarefa.titulo %></h1>
+        <p class="text-sm sm:text-base text-gray-600 mt-2"><%= tarefa.descricao %></p>
+        <div class="mt-3 text-xs sm:text-sm text-gray-500 space-y-1">
+          <p><strong>Data de entrega:</strong> <%= new Date(tarefa.data_entrega).toLocaleDateString('pt-BR') %></p>
+          <p><strong>Valor máximo:</strong> <%= tarefa.valor %> pontos</p>
+        </div>
+      </div>
+
+      <hr class="my-6">
+
+      <!-- ALUNO -->
+      <% if (user.tipo === 'aluno') { %>
+        <div>
+          <h2 class="text-lg sm:text-xl font-semibold text-blue-600 mb-3">Enviar Tarefa</h2>
+
+          <% if (error) { %>
+            <p class="text-red-500 mb-3 text-center text-sm sm:text-base"><%= error %></p>
+          <% } %>
+
+          <% if (jaEnviou) { %>
+            <div class="bg-green-100 border border-green-300 text-green-700 p-3 sm:p-4 rounded text-sm sm:text-base">
+              <p>Você já enviou esta tarefa em <%= new Date(jaEnviou.data_envio).toLocaleString('pt-BR') %>.</p>
+              <p>Arquivo enviado: 
+                <a href="/repo/tarefa/<%= tarefa.id %>/download/<%= jaEnviou.arquivo %>" 
+                   class="text-blue-600 hover:underline">
+                   <%= jaEnviou.nome_original %>
+                </a>
+              </p>
+              <% if (jaEnviou.nota) { %>
+                <p><strong>Nota:</strong> <%= jaEnviou.nota %> / <%= tarefa.valor %></p>
+              <% } %>
+              <% if (jaEnviou.feedback) { %>
+                <p><strong>Feedback:</strong> <%= jaEnviou.feedback %></p>
+              <% } %>
+            </div>
+          <% } else { %>
+            <form action="/repo/tarefa/<%= tarefa.id %>/enviar" method="POST" enctype="multipart/form-data"
+                  class="flex flex-col gap-3 sm:gap-4 bg-gray-50 p-3 sm:p-4 rounded border w-full">
+              <input type="file" name="arquivo" required class="p-2 sm:p-3 border rounded w-full">
+              <button type="submit"
+                      class="bg-blue-500 text-white px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-blue-600 transition text-sm sm:text-base w-full">
+                Enviar Tarefa
+              </button>
+            </form>
+          <% } %>
+        </div>
+
+      <!-- PROFESSOR / DIRETOR / ADMIN -->
+      <% } else { %>
+        <div>
+          <h2 class="text-lg sm:text-xl font-semibold text-green-600 mb-3">Envios Recebidos</h2>
+
+          <% if (error) { %>
+            <p class="text-red-500 mb-3 text-center text-sm sm:text-base"><%= error %></p>
+          <% } %>
+
+          <% if (envios.length > 0) { %>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border border-gray-300 rounded-lg text-xs sm:text-sm min-w-[600px]">
+                <thead class="bg-gray-200 text-xs sm:text-sm">
+                  <tr>
+                    <th class="p-2 sm:p-3 border-b w-48">Aluno</th>
+                    <th class="p-2 sm:p-3 border-b">Data de Envio</th>
+                    <th class="p-2 sm:p-3 border-b w-48">Arquivo</th>
+                    <th class="p-2 sm:p-3 border-b text-center w-24">Nota</th>
+                    <th class="p-2 sm:p-3 border-b w-96">Feedback</th>
+                    <th class="p-2 sm:p-3 border-b text-center w-16">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% envios.forEach(e => { %>
+                    <tr class="hover:bg-gray-50 transition text-xs sm:text-sm">
+                      <td class="p-2 sm:p-3 border-b"><%= e.aluno_nome %></td>
+                      <td class="p-2 sm:p-3 border-b"><%= new Date(e.data_envio).toLocaleString('pt-BR') %></td>
+                      <td class="p-2 sm:p-3 border-b">
+                        <a href="/repo/tarefa/<%= tarefa.id %>/download/<%= e.arquivo %>"
+                           class="text-blue-600 hover:underline">
+                           <%= e.nome_original || e.arquivo %>
+                        </a>
+                      </td>
+
+                      <form action="/repo/tarefa/<%= tarefa.id %>/avaliar/<%= e.id %>" method="POST" class="contents">
+                        <td class="p-2 sm:p-3 border-b text-center">
+                          <input type="number" name="nota" step="0.1" min="0" max="<%= tarefa.valor %>"
+                                 value="<%= e.nota ?? '' %>"
+                                 class="border p-1 rounded w-16 text-center bg-gray-100 nota-input"
+                                 disabled>
+                        </td>
+                        <td class="p-2 sm:p-3 border-b">
+                          <textarea name="feedback"
+                                    placeholder="Escreva o feedback..."
+                                    class="border p-2 rounded w-full h-20 sm:h-24 bg-gray-100 feedback-input resize-none"
+                                    disabled><%= e.feedback ?? '' %></textarea>
+                        </td>
+                        <td class="p-2 sm:p-3 border-b text-center">
+                          <div class="flex flex-col gap-2 items-center">
+                            <button type="button"
+                                    class="edit-btn bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 transition text-xs sm:text-sm">
+                              Editar
+                            </button>
+                            <button type="submit"
+                                    class="save-btn bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 transition hidden text-xs sm:text-sm">
+                              Salvar
+                            </button>
+                          </div>
+                        </td>
+                      </form>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          <% } else { %>
+            <p class="text-gray-500 italic text-sm sm:text-base">Nenhum envio foi realizado ainda.</p>
+          <% } %>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <script>
+    document.querySelectorAll('.edit-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const row = btn.closest('tr');
+        const notaInput = row.querySelector('.nota-input');
+        const feedbackInput = row.querySelector('.feedback-input');
+        const saveBtn = row.querySelector('.save-btn');
+
+        const isEditing = !notaInput.disabled;
+
+        if (!isEditing) {
+          notaInput.disabled = false;
+          feedbackInput.disabled = false;
+          notaInput.classList.remove('bg-gray-100');
+          feedbackInput.classList.remove('bg-gray-100');
+          btn.classList.add('hidden');
+          saveBtn.classList.remove('hidden');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
