@@ -21,7 +21,7 @@ Antes de iniciar, instale:
 Clone ou baixe o repositório:
 
 ```bash
-git clone https://github.com/SEU-USUARIO/acadhub.git
+git clone https://github.com/PedroGarcia02/acadhub.git
 cd acadhub
 ```
 
