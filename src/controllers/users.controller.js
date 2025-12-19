@@ -70,26 +70,38 @@ async registrarUsuario(req, res) {
     if (!user.nome || !user.email || !user.senha || !user.tipo) {
       res.locals.error = "Preencha todos os campos obrigatórios.";
       res.locals.formData = user;
-      return await this.mostrarCadastro(req, res);
+      return res.render('admin/painel', {
+        error: res.locals.error || null,
+        formData: res.locals.formData || {}
+      });
     }
 
     if ((user.tipo === 'professor' || user.tipo === 'aluno') && !user.curso) {
       res.locals.error = "Selecione um curso para este usuário.";
       res.locals.formData = user;
-      return await this.mostrarCadastro(req, res);
+      return res.render('admin/painel', {
+        error: res.locals.error || null,
+        formData: res.locals.formData || {}
+      });
     }
 
     const emailExistente = await usersDAO.findByEmail(user.email);
     if (emailExistente.length > 0) {
       res.locals.error = "Este email já está cadastrado.";
       res.locals.formData = user;
-      return await this.mostrarCadastro(req, res);
+      return res.render('admin/painel', {
+        error: res.locals.error || null,
+        formData: res.locals.formData || {}
+      });
     }
 
     if (userTipoLogado === 'diretor' && user.tipo === 'admin') {
       res.locals.error = "Diretor não pode cadastrar admin.";
       res.locals.formData = user;
-      return await this.mostrarCadastro(req, res);
+      return res.render('admin/painel', {
+        error: res.locals.error || null,
+        formData: res.locals.formData || {}
+      });
     }
 
     user.senha = await bcrypt.hash(user.senha, 10);
@@ -102,7 +114,10 @@ async registrarUsuario(req, res) {
     console.error("Erro ao cadastrar usuário:", error);
     res.locals.error = "Ocorreu um erro ao cadastrar o usuário.";
     res.locals.formData = req.body;
-    await this.mostrarCadastro(req, res);
+    return res.render('admin/painel', {
+        error: res.locals.error || null,
+        formData: res.locals.formData || {}
+      });
   }
 },
 
@@ -139,7 +154,10 @@ async registrarUsuario(req, res) {
     },
 
     async mostrarPainel(req, res) {
-        res.render('admin/painel');
+        res.render('admin/painel', {
+        error: res.locals.error || null,
+        formData: res.locals.formData || {}
+      });
     },
 
     async update(req, res) {
