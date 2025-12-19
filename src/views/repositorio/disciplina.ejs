@@ -84,12 +84,12 @@
                             <div class="flex items-center gap-3">
                               <% if (c.tipo==='pdf' ) { %>
                                 <img src="/images/pdf.webp" alt="PDF" class="w-6 h-6">
-                                <a href="/repo/conteudo/<%=session.user.curso_id%>/download/<%= c.arquivo %>" class="text-blue-600 hover:underline text-base sm:text-sm">
+                                <a href="/repo/conteudo/<%=disciplina.curso_id%>/download/<%= c.arquivo %>" class="text-blue-600 hover:underline text-base sm:text-sm">
                                   <%= c.nome %>
                                 </a>
                                 <% } else if (c.tipo==='zip' ) { %>
                                   <img src="/images/zip.png" alt="ZIP" class="w-6 h-6">
-                                  <a href="/repo/conteudo/<%=session.user.curso_id%>/download/<%= c.arquivo %>" class="text-blue-600 hover:underline text-base sm:text-sm">
+                                  <a href="/repo/conteudo/<%=disciplina.curso_id%>/download/<%= c.arquivo %>" class="text-blue-600 hover:underline text-base sm:text-sm">
                                     <%= c.nome %>
                                   </a>
                                   <% } else if (c.tipo==='link' ) { %>
@@ -159,5 +159,6 @@
               <% } %>
     </div>
 </body>
+
 
 </html>
