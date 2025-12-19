@@ -43,6 +43,22 @@ async findTopicosByInstituicao(instituicao_id, curso_id) {
     return dados[0];
 },
 
+async findTopicosByInstituicao(instituicao_id) {
+    const sql = `
+        SELECT 
+            topicos.*,
+            COUNT(discussao.id) AS qtd_discussoes
+        FROM topicos
+        LEFT JOIN discussao ON discussao.topico_id = topicos.id
+        WHERE topicos.instituicao_id = ?
+        GROUP BY topicos.id
+        ORDER BY topicos.pinned DESC, topicos.created_at DESC
+    `;
+
+    const dados = await db.execute(sql, [instituicao_id]);
+    return dados[0];
+},
+
 async findDiscussaoByTopico(topico_id) {
     const sql = `
         SELECT
@@ -431,4 +447,5 @@ async atualizaResumoDiscussao(id, textoIA) {
 
 
 }
+
 module.exports = forumDAO;
