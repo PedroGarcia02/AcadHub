@@ -82,7 +82,7 @@ INSERT INTO medalhas (id, nome, imagem, pontos, tipo) VALUES
 (UUID(), 'Prata Forum', 'prata_forum.png', 100, 'forum'),
 (UUID(), 'Ouro Forum', 'ouro_forum.png', 200, 'forum'),
 
-(UUID(), 'Bronze Conteudo', 'bronze_conteudo.png', 4, 'conteudo'),
+(UUID(), 'Bronze Conteudo', 'bronze_conteudo.png', 50, 'conteudo'),
 (UUID(), 'Prata Conteudo', 'prata_conteudo.png', 100, 'conteudo'),
 (UUID(), 'Ouro Conteudo', 'ouro_conteudo.png', 200, 'conteudo'),
 
@@ -207,5 +207,6 @@ BEGIN
             AND um.medalha_id = m.id
       );
 END$$
+
 
 DELIMITER ;
