@@ -25,8 +25,12 @@ async apagarImagem(nomeArquivo, tipo) {
 
 async home(req, res) {
         const instituicao = await instituicoesDAO.findByUsuarioID(req.session.user.id);
-        
-        const topicos = await forumDAO.findTopicosByInstituicao(instituicao[0].id, instituicao[0].curso);
+
+        if (req.session.user.tipo == 'admin' || req.session.user.tipo == 'diretor') {
+          var topicos = await forumDAO.findTopicosByInstituicao(instituicao[0].id);
+        } else {
+          var topicos = await forumDAO.findTopicosByInstituicao(instituicao[0].id, instituicao[0].curso);  
+        };
 
         res.render('forum/home', {
             topicos: topicos
@@ -46,7 +50,7 @@ async mostrarTopico(req, res) {
         return res.redirect("/forum/");
     }
     
-    if(topico.curso_id !== null && topico.curso_id != req.session.user.curso_id) {
+    if(topico.curso_id !== null && topico.curso_id != req.session.user.curso_id && req.session.user.tipo != 'admin' && req.session.user.tipo != 'diretor') {
         return res.redirect("/forum/");
     }
 
@@ -81,7 +85,7 @@ async mostrarDiscussao(req, res) {
         if (instituicao.instituicao_id != req.session.user.instituicao_id) {
             return res.redirect("/forum/");
         }
-        if (instituicao.curso_id !== null && instituicao.curso_id != req.session.user.curso_id) {
+        if (instituicao.curso_id !== null && instituicao.curso_id != req.session.user.curso_id && req.session.user.tipo != 'admin' && req.session.user.tipo != 'diretor') {
             return res.redirect("/forum/");
         }
 
@@ -331,4 +335,5 @@ async gerarResumoDiscussao(req, res) {
 
 
 }
+
 module.exports = forumController;
